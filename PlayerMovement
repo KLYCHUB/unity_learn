@@ -1,3 +1,5 @@
+//Rolling, (x, z moving), third person camera follow
+
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -12,6 +14,12 @@ public class PlayerMovement : MonoBehaviour
     private bool rolling = false;
     private float rollStartTime;
     private float rollDuration = 1f;
+
+    [SerializeField]
+    private float maximumSpeed;
+
+    [SerializeField]
+    private Transform cameraTransform;
 
     void Start()
     {
@@ -35,12 +43,15 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 movementDirection = new Vector3(horizontalInput, 0, verticalInput);
         float magnitude = Mathf.Clamp01(movementDirection.magnitude) * speed;
+        float inputMagnitude = Mathf.Clamp01(movementDirection.magnitude);
 
         if (isSprinting)
         {
             magnitude *= fastSpeedMultiplier;
         }
 
+        float calculatedSpeed = inputMagnitude * maximumSpeed;
+        movementDirection = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * movementDirection;
         movementDirection.Normalize();
 
         if (characterController.isGrounded)
@@ -97,5 +108,17 @@ public class PlayerMovement : MonoBehaviour
 
         animator.SetBool("IsSprinting", isSprinting);
         animator.SetBool("IsRolling", rolling);
+    }
+
+    private void OnApplicationFocus(bool focus)
+    {
+        if (focus)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+        }
     }
 }
