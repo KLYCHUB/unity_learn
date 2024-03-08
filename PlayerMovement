@@ -1,0 +1,101 @@
+using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    public float speed;
+    public float rotationSpeed;
+    public float fastSpeedMultiplier = 2f;
+
+    private Animator animator;
+    private CharacterController characterController;
+    private bool isSprinting = false;
+    private bool rolling = false;
+    private float rollStartTime;
+    private float rollDuration = 1f;
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+        characterController = GetComponent<CharacterController>();
+    }
+
+    void Update()
+    {
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
+
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            isSprinting = true;
+        }
+        else
+        {
+            isSprinting = false;
+        }
+
+        Vector3 movementDirection = new Vector3(horizontalInput, 0, verticalInput);
+        float magnitude = Mathf.Clamp01(movementDirection.magnitude) * speed;
+
+        if (isSprinting)
+        {
+            magnitude *= fastSpeedMultiplier;
+        }
+
+        movementDirection.Normalize();
+
+        if (characterController.isGrounded)
+        {
+            characterController.stepOffset = 0.3f; // Adjust the step offset value as needed
+        }
+        else
+        {
+            characterController.stepOffset = 0;
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !rolling && movementDirection != Vector3.zero)
+        {
+            rolling = true;
+            animator.SetTrigger("Roll");
+            rollStartTime = Time.time;
+        }
+
+        if (rolling)
+        {
+            // Handle rolling movement here
+            // (e.g., move forward, apply torque, etc.)
+            if (Time.time - rollStartTime > rollDuration)
+            {
+                rolling = false;
+            }
+            else
+            {
+                // Move forward in the direction the character is facing when rolling
+                Vector3 forwardMovement = transform.forward * magnitude;
+                characterController.Move(forwardMovement * Time.deltaTime);
+            }
+        }
+
+        // Prevent movement in opposite direction while rolling
+        if (rolling && Vector3.Dot(movementDirection, transform.forward) < 0)
+        {
+            movementDirection = Vector3.zero;
+        }
+
+        Vector3 velocity = movementDirection * magnitude;
+        characterController.Move(velocity * Time.deltaTime);
+
+        if (movementDirection != Vector3.zero && !rolling)
+        {
+            animator.SetBool("IsMoving", true);
+            Quaternion toRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+        }
+        else
+        {
+            animator.SetBool("IsMoving", false);
+        }
+
+        animator.SetBool("IsSprinting", isSprinting);
+        animator.SetBool("IsRolling", rolling);
+    }
+}
