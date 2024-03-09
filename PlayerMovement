@@ -1,5 +1,7 @@
 //Rolling, (x, z moving), third person camera follow
 
+buna detaylı bir açıklam saatırı ekle, yeni öğrenen birisi için. her şeyi öğrenmeli
+
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -7,13 +9,13 @@ public class PlayerMovement : MonoBehaviour
     public float speed;
     public float rotationSpeed;
     public float fastSpeedMultiplier = 2f;
+    public float rollDuration = 1f;
 
     private Animator animator;
     private CharacterController characterController;
     private bool isSprinting = false;
     private bool rolling = false;
     private float rollStartTime;
-    private float rollDuration = 1f;
 
     [SerializeField]
     private float maximumSpeed;
@@ -54,16 +56,7 @@ public class PlayerMovement : MonoBehaviour
         movementDirection = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * movementDirection;
         movementDirection.Normalize();
 
-        if (characterController.isGrounded)
-        {
-            characterController.stepOffset = 0.3f; // Adjust the step offset value as needed
-        }
-        else
-        {
-            characterController.stepOffset = 0;
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !rolling && movementDirection != Vector3.zero)
+        if (Input.GetKeyDown(KeyCode.C) && !rolling && movementDirection != Vector3.zero)
         {
             rolling = true;
             animator.SetTrigger("Roll");
@@ -72,24 +65,15 @@ public class PlayerMovement : MonoBehaviour
 
         if (rolling)
         {
-            // Handle rolling movement here
-            // (e.g., move forward, apply torque, etc.)
             if (Time.time - rollStartTime > rollDuration)
             {
                 rolling = false;
             }
             else
             {
-                // Move forward in the direction the character is facing when rolling
                 Vector3 forwardMovement = transform.forward * magnitude;
                 characterController.Move(forwardMovement * Time.deltaTime);
             }
-        }
-
-        // Prevent movement in opposite direction while rolling
-        if (rolling && Vector3.Dot(movementDirection, transform.forward) < 0)
-        {
-            movementDirection = Vector3.zero;
         }
 
         Vector3 velocity = movementDirection * magnitude;
