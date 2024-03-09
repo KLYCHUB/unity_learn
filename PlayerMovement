@@ -1,7 +1,5 @@
 //Rolling, (x, z moving), third person camera follow
 
-buna detaylı bir açıklam saatırı ekle, yeni öğrenen birisi için. her şeyi öğrenmeli
-
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
